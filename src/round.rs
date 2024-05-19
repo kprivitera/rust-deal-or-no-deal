@@ -4,7 +4,6 @@ use std::collections::HashMap;
 use crate::game::Game;
 
 
-#[derive(Debug)]
 #[derive(Clone)]
 pub struct Round {
   pub number: u32,
@@ -21,11 +20,7 @@ impl Round {
     }
   }
 
-  pub fn play_round(
-    &mut self, 
-    game: &mut Game,
-    round_number: u32, 
-  ) {
+  pub fn play_round(&mut self, game: &mut Game, round_number: u32) {
     println!("----- Round {} -----", round_number + 1); 
     for choice_no in 0..self.cases_to_choose {
       println!("----- Choice {} -----", choice_no + 1); 
