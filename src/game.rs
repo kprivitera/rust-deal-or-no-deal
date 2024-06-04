@@ -44,7 +44,6 @@ impl Game {
     let mut amounts: Vec<f64> = AMOUNTS.to_vec();
     amounts.shuffle(&mut rng);
 
-    // let mut case_values = HashMap::new();
     let case_values: HashMap<u32, f64> = amounts.iter().enumerate()
       .map(|(i, &amount)| ((i+1) as u32, amount))
       .collect(); // the iterator of tuples is converted into a hash map with collect
@@ -100,7 +99,6 @@ impl Game {
     let mut sorted_cases: Vec<(&u32, &f64)> = self.all_cases.iter().collect();
     sorted_cases.sort_by(|&(_, &case_value1), &(_, &case_value2)| case_value1.partial_cmp(&case_value2).unwrap());
     
-    // let table = Game::create_table(sorted_cases, &self.all_selected_cases);
     let game_table = GameTable::new(sorted_cases, &self.all_selected_cases);
     game_table.print();
 }

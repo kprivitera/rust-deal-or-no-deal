@@ -52,7 +52,7 @@ impl Round {
           println!("Failed to make a selection");
           return;
         }
-    }; // Add this closing brace here
+    };
     let selected_case = case_numbers[selection];
     let selected_value = match case_values.get(&selected_case) {
       Some(val) => *val,
