@@ -27,35 +27,51 @@ impl Game {
   }
 
   pub fn play_game(&mut self) {
-    for mut round in self.rounds.clone() {
-        round.play_round(self, round.number);
-
-        // if !Confirm::new()
-        //   .with_prompt("Round complete. Are you ready for the next round?")
-        //   .interact()
-        //   .unwrap()
-        // {
-        //     println!("Okay, we'll wait for you to be ready.");
-        //     break;
-        // }
-        // calculate bank offer
+    for (i, mut round) in self.rounds.clone().into_iter().enumerate() {
+      round.play_round(self, round.number);
+  
+      // If it's the last round
+      if i == self.rounds.len() - 1 {
+          println!("This is the last round! Lets open your initial case.");
+          self.all_selected_cases.push(self.initial_case_choice);
+          self.show_game_board();
+      }  
     }
   }
-  
 
-  pub fn new() -> Game {
-    // let original_cases = 
+  fn create_case_values() -> HashMap<u32, f64> {
     let mut rng = rand::thread_rng();
-    let cases_per_round = vec![6, 5, 4, 3, 2, 1, 1, 1, 1, 1, 1];
-    let rounds = Self::create_rounds(&cases_per_round);
     let mut amounts: Vec<f64> = AMOUNTS.to_vec();
     amounts.shuffle(&mut rng);
 
     // let mut case_values = HashMap::new();
-    let mut case_values: HashMap<u32, f64> = amounts.iter().enumerate()
+    let case_values: HashMap<u32, f64> = amounts.iter().enumerate()
       .map(|(i, &amount)| ((i+1) as u32, amount))
       .collect(); // the iterator of tuples is converted into a hash map with collect
 
+    case_values
+  }
+
+  fn choose_initial_case(case_numbers: &Vec<u32>) -> Option<u32> {
+    let selection = match Select::new()
+      .with_prompt("Choose your initial case")
+      .items(&case_numbers)
+      .default(0)
+      .interact() {
+        Ok(val) => val,
+        Err(_) => {
+            println!("Failed to make a selection");
+            return None;
+        }
+    };
+    Some(case_numbers[selection])
+  }
+  
+
+  pub fn new() -> Game {
+    let cases_per_round = vec![6, 5, 3, 2, 2, 1, 1];
+    let rounds = Self::create_rounds(&cases_per_round);
+    let mut case_values = Self::create_case_values();
     let all_cases = case_values.clone();
 
     // Convert the keys of the HashMap into a Vec
@@ -65,24 +81,18 @@ impl Game {
     case_numbers.sort();
 
     // Create the selection prompt
-    let selection = Select::new()
-        .with_prompt("Choose your initial case")
-        .items(&case_numbers)
-        .default(0)
-        .interact()
-        .unwrap();
+    let selected_case = Self::choose_initial_case(&case_numbers)
+      .expect("Failed to select an initial case");
 
-    // The selected case number is
-    let selected_case = case_numbers[selection];
     case_values.remove(&selected_case);
 
     Game {
-      case_values,
-      current_round: 1,
-      initial_case_choice: selected_case,
-      rounds,
-      all_selected_cases: vec![selected_case],
-      all_cases,
+        case_values,
+        current_round: 1,
+        initial_case_choice: selected_case,
+        rounds,
+        all_selected_cases: Vec::new(),
+        all_cases,
     }
   }
 

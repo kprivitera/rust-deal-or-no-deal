@@ -42,16 +42,25 @@ impl Round {
     let mut case_numbers: Vec<u32> = case_values.keys().cloned().collect();
     case_numbers.sort();
 
-    let selection = Select::new()
+    let selection = match Select::new()
       .with_prompt("Choose a case")
       .items(&case_numbers)
       .default(0)
-      .interact()
-      .unwrap();
-
+      .interact() {
+        Ok(val) => val,
+        Err(_) => {
+          println!("Failed to make a selection");
+          return;
+        }
+    }; // Add this closing brace here
     let selected_case = case_numbers[selection];
-    let selected_value = case_values.get(&selected_case).unwrap();
-
+    let selected_value = match case_values.get(&selected_case) {
+      Some(val) => *val,
+      None => {
+          println!("Failed to get the value of the selected case");
+          return;
+      }
+    };
     println!("You selected: {}", selected_case);
     println!("The amount is: {}", selected_value);
     println!("====================");
