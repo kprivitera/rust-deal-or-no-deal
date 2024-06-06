@@ -2,9 +2,10 @@ use dialoguer::Select;
 use dialoguer::Confirm;
 use std::collections::HashMap;
 use rand::seq::SliceRandom;
+use num_format::{Locale, ToFormattedString};
+
 use crate::round::Round;
 use crate::game_table::GameTable;
-
 
 pub struct Game {
   all_cases: HashMap<u32, f64>,
@@ -26,10 +27,31 @@ impl Game {
       .collect()
   }
 
+  fn print_bank_offer(bank_offer: f64) -> bool {
+    let formatted_offer = (bank_offer as i64).to_formatted_string(&Locale::en);
+    let accept_offer = Confirm::new()
+      .with_prompt(&format!("The bank offers you ${} for your case. Do you accept?", formatted_offer))
+      .interact()
+      .unwrap();
+
+    if accept_offer {
+        println!("You accepted the offer!");
+    } else {
+        println!("You declined the offer!");
+    }   
+
+    accept_offer 
+  }
+
   pub fn play_game(&mut self) {
     for (i, mut round) in self.rounds.clone().into_iter().enumerate() {
       round.play_round(self, round.number);
-  
+      let bank_offer = self.calculate_bank_offer();
+
+      // We dont need to proceed if the bank offer is accepted
+      if Self::print_bank_offer(bank_offer) {
+        break;
+      }  
       // If it's the last round
       if i == self.rounds.len() - 1 {
           println!("This is the last round! Lets open your initial case.");
@@ -44,7 +66,8 @@ impl Game {
     let mut amounts: Vec<f64> = AMOUNTS.to_vec();
     amounts.shuffle(&mut rng);
 
-    let case_values: HashMap<u32, f64> = amounts.iter().enumerate()
+    let case_values: HashMap<u32, f64> = amounts.iter()
+      .enumerate()
       .map(|(i, &amount)| ((i+1) as u32, amount))
       .collect(); // the iterator of tuples is converted into a hash map with collect
 
@@ -103,12 +126,12 @@ impl Game {
     game_table.print();
 }
 
-  pub fn calculate_bank_offer(&self) {
-    //     let total: u32 = self.remaining_cases.iter().sum();
-    //     let average: f64 = total as f64 / self.remaining_cases.len() as f64;
+  pub fn calculate_bank_offer(&self) -> f64 {
+        let total: f64 = self.case_values.values().sum();
+        let average: f64 = total as f64 / self.case_values.len() as f64;
 
-    //     // The bank offer is typically a bit less than the average
-    //     average * 0.75
-    }
+        // The bank offer is typically a bit less than the average
+        average * 0.75
+  }
 
 }
